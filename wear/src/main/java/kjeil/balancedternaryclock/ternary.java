@@ -286,7 +286,8 @@ public class ternary extends CanvasWatchFaceService {
 
             @Override
             public void onReceive(Context context, Intent intent) {
-                now.setTimeZone(TimeZone.getDefault());
+                yesterdayTomorrow(); 
+                yesRefresh=true; 
             }
         };
 
@@ -359,12 +360,7 @@ public class ternary extends CanvasWatchFaceService {
             dateTrytes.add(wkDayTryte); 
             rgbRays.add(redRay); rgbRays.add(greenRay); rgbRays.add(blueRay); rgbRays.add(greyRay); 
 
-            yesterday.set(Calendar.HOUR_OF_DAY, 0);
-            yesterday.set(Calendar.MINUTE, 0);
-            yesterday.set(Calendar.SECOND, 0);
-            yesterday.set(Calendar.MILLISECOND, 0);
-
-            tomorrow = (Calendar)yesterday.clone(); tomorrow.add(Calendar.DATE, 1);
+            yesterdayTomorrow();
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
@@ -385,6 +381,22 @@ public class ternary extends CanvasWatchFaceService {
 
         }
 
+        // call when changing timezones.
+        private void yesterdayTomorrow(){
+            now.setTimeZone(TimeZone.getDefautl()); 
+            yesterday.setTimeZone(TimeZone.getDefault()); 
+            tomorrow.setTimeZone(TimeZone.getDefault()); 
+            yesterday.set(Calendar.HOUR_OF_DAY, 0);
+            yesterday.set(Calendar.MINUTE, 0);
+            yesterday.set(Calendar.SECOND, 0);
+            yesterday.set(Calendar.MILLISECOND, 0);
+            tomorrow = (Calendar)yesterday.clone(); tomorrow.add(Calendar.DATE, 1);
+            if (yesterday.getTimeInMillis() > now.getTimeInMillis()){
+               tomorrow.add(Calendar.DATE, -1); yesterday.add(Calendar.DATE, -1);
+               yearTrits(); monthTrits(); dayTrits(); wkDayTrits();
+            }
+        }
+           
         // array of paints -> none
         private void createTextArrayColor(Paint[] array, int c, boolean isGrey){
             for (byte i = 0; i < array.length; i++) {
@@ -464,7 +476,7 @@ public class ternary extends CanvasWatchFaceService {
             super.onVisibilityChanged(visible);
             if (visible) {
                 registerReceiver();
-                now.setTimeZone(TimeZone.getDefault());
+                yesterdayTomorrow(); 
                 yesSecs = !isInAmbientMode() && allowSecs; yesRefresh = true; handleUpdateTimeMessage();
             } else {unregisterReceiver();}
             // Whether the timer should be running depends on whether we're visible (as well as
@@ -478,6 +490,7 @@ public class ternary extends CanvasWatchFaceService {
             }
             mRegisteredTimeZoneReceiver = true;
             IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
+            filter.addAction(Intent.ACTION_LOCALE_CHANGED); 
             ternary.this.registerReceiver(mTimeZoneReceiver, filter);
         }
 
