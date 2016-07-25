@@ -39,7 +39,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone; 
 import java.util.List;
+import java.util.Random;
 
 // screen width and height
 
@@ -102,6 +104,22 @@ public class ternary extends CanvasWatchFaceService {
     }
 
     private class Engine extends CanvasWatchFaceService.Engine {
+
+        // Matrix by Dheera Venkatraman Backdrop (gethub.com/dheera/android-wearface-matrix)
+        boolean yesMatrix = false; // dispaly matrix Smith scanner.
+        private final int mSettingsNumRows = 23; 
+        private int mMatrixBaseColor = Color.GREEN; 
+        private Random random = new Random(); 
+        private Paint[] mMatrixPaints = new Paint[8];
+        private final String[] matrixChars = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
+                "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4",
+                "5", "6", "7", "8", "9", "@", "$", "&", "%", "(", ")", "*", "%", "!", "#", "ア", "イ", "ウ", "エ",
+                "オ", "カ", "キ", "ク", "ケ", "コ", "サ", "シ", "ス", "セ", "ソ", "タ", "チ", "ツ", "テ", "ト",
+                "ナ", "ニ", "ヌ", "ネ", "ノ", "ハ", "ヒ", "フ", "ヘ", "ホ"} ; 
+        private String[][] mMatrixValues = new String[mSettingsNumRows][mSettingsNumRows];
+        private int[][] mMatrixIntensities = new int[mSettingsNumRows][mSettingsNumRows] ;
+        private int mCharWidth; 
+        private int matriXOffset;  
 
         // calculated date
         byte [] yearTryte;
@@ -268,7 +286,7 @@ public class ternary extends CanvasWatchFaceService {
 
             @Override
             public void onReceive(Context context, Intent intent) {
-                now = new GregorianCalendar();
+                now.setTimeZone(TimeZone.getDefault());
             }
         };
 
@@ -304,6 +322,37 @@ public class ternary extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
             Resources resources = ternary.this.getResources();
+
+            // Matrix Continued.
+            int i, j;
+            for(i = 0; i <=5 ; i++) {
+                mMatrixPaints[i] = new Paint();
+                mMatrixPaints[i].setColor(Color.rgb(0, i * 32, 0));
+                /*mMatrixPaints[i].setColor(
+                        (mMatrixBaseColor & 0xFF) / 8 * i +
+                        ((mMatrixBaseColor>>8 & 0xFF) / 8 * i) << 8 +
+                        ((mMatrixBaseColor>>16 & 0xFF) / 8 * i) << 16 +
+                        ((mMatrixBaseColor>>24 & 0xFF) / 8 * i) << 24
+                ); */
+                mMatrixPaints[i].setTextSize(mCharWidth - 1);
+                mMatrixPaints[i].setAntiAlias(false);
+            }
+
+            mMatrixPaints[6] = new Paint();
+            mMatrixPaints[6].setColor(Color.rgb(63, 255, 63));
+            mMatrixPaints[6].setTextSize(mCharWidth - 1);
+            mMatrixPaints[6].setAntiAlias(false);
+            mMatrixPaints[7] = new Paint();
+            mMatrixPaints[7].setColor(Color.rgb(191, 255, 191));
+            mMatrixPaints[7].setTextSize(mCharWidth - 1);
+            mMatrixPaints[7].setAntiAlias(false);
+
+            for(i = 0; i < mSettingsNumRows; i++) {
+                for (j = 0; j < mSettingsNumRows; j++) {
+                    mMatrixValues[i][j] = matrixChars[random.nextInt(matrixChars.length)];
+                    mMatrixIntensities[i][j]=0;
+                }
+            }
 
             // list of arrays cannot be defined before onCreate.
             dateTrytes.add(yearTryte); dateTrytes.add(monthTryte); dateTrytes.add(dayTryte); 
@@ -415,8 +464,8 @@ public class ternary extends CanvasWatchFaceService {
             super.onVisibilityChanged(visible);
             if (visible) {
                 registerReceiver();
-                // now = new GregorianCalendar();
-                yesSecs = !isInAmbientMode() && allowSecs; yesRefresh = true; updateTim();
+                now.setTimeZone(TimeZone.getDefault());
+                yesSecs = !isInAmbientMode() && allowSecs; yesRefresh = true; handleUpdateTimeMessage();
             } else {unregisterReceiver();}
             // Whether the timer should be running depends on whether we're visible (as well as
             // whether we're in ambient mode), so we may need to start or stop the timer.
@@ -570,14 +619,18 @@ public class ternary extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    if (x > wideness/2) {mTapCount++;} else {mTapCount -= 1;}
+                    //Tap top
+                    if (y < tallness * (float).25) { yesMatrix = !yesMatrix;}
+                    else {
+                       // right and left
+                    if (x > wideness * (float).5) {mTapCount++;} else {mTapCount -= 1;}
                     modTapCount = (mTapCount % ambientScheme.length + ambientScheme.length) % ambientScheme.length;
 
                     setTextArrayColor(smallTextRay, modTapCount, false);
                     setTextArrayColor(textRay, modTapCount, false);
                     setTextArrayColor(commonTextRay, modTapCount, false);
                     setTextArrayColor(greyTextRay, modTapCount, true);
-
+                    }
                     break;
             }
             yesTic = true;  handleUpdateTimeMessage();
@@ -606,10 +659,43 @@ public class ternary extends CanvasWatchFaceService {
 
             uncalled = true; // the handler was not called if this remains true.
 
-            updateTim(); 
+            // ready onMatrix
+            int width = bounds.width();
+            int height = bounds.height();
+
+            mCharWidth = width / mSettingsNumRows + 1;
+            matriXOffset = (width - mCharWidth * mSettingsNumRows)/2;
 
             // Draw the background.
             canvas.drawColor(Color.BLACK);
+
+            if (yesMatrix && !isInAmbientMode()) {
+                int i, j;
+                for (i = 0; i < mSettingsNumRows; i++) {
+                    for (j = mSettingsNumRows - 1; j > 0; j--) {
+                        if (mMatrixIntensities[i][j] == 7 || (j < 5 && random.nextInt(24) == 0)) {
+                            canvas.drawText(mMatrixValues[i][j], matriXOffset + i * mCharWidth, j * mCharWidth, mMatrixPaints[7]);
+                            if (random.nextInt(2) == 0) {
+                                if (j < mSettingsNumRows - 1) {
+                                    mMatrixIntensities[i][j + 1] = 7;
+                                    mMatrixValues[i][j + 1] = matrixChars[random.nextInt(matrixChars.length)];
+                                }
+                                mMatrixIntensities[i][j] = 6;
+                            }
+                        } else {
+                            if (mMatrixIntensities[i][j] > 0) {
+                                canvas.drawText(mMatrixValues[i][j], matriXOffset + i * mCharWidth, j * mCharWidth, mMatrixPaints[mMatrixIntensities[i][j]]);
+                            }
+                            mMatrixIntensities[i][j] += random.nextInt(5) - 3;
+                            if (mMatrixIntensities[i][j] < 0) mMatrixIntensities[i][j] = 0;
+                            if (mMatrixIntensities[i][j] >= 7) mMatrixIntensities[i][j] = 6;
+                        }
+                    }
+                }
+            }
+
+            
+            updateTim(); 
 
             // Draw hms trits
             posX = (mXOffset + xShift); posY = mYOffset;
@@ -664,6 +750,11 @@ public class ternary extends CanvasWatchFaceService {
                         ,y, z, w, (int)vShiftRay[(int)x%3])
                         , xMargin,-yShiftDefault/(float)3 + 
                         ((mCardBounds.top == 0) ? tallness : (float)mCardBounds.top), smallTextPaint);
+            }
+            // Draw every frame as long as we're visible and in interactive mode.
+            // id est, burn battery burn!!!
+            if (yesMatrix && isVisible() && !isInAmbientMode()) {
+                invalidate();
             }
         }
 
@@ -766,12 +857,12 @@ public class ternary extends CanvasWatchFaceService {
         private void dayTrits () {dayTryte = tritArrayer((float)(now.get(Calendar.DAY_OF_MONTH)));}
         
         private void wkDayTrits () {
-           wkDayTryte = tritArrayer((float)(now.get(Calendar.DAY_OF_WEEK) + 1 % 7 - 3 ));
+           wkDayTryte = tritArrayer(((float)((now.get(Calendar.DAY_OF_WEEK) + 1) % 7) - 3 ));
         }
 
-        // double -> byte[array]
-        private byte [] tritArrayer (double num) {
-            byte length = (byte)Math.round(Math.log(num)/ Math.log(3));
+        // float -> byte[array]
+        private byte [] tritArrayer (float num) {
+            byte length = (byte)Math.round(Math.log(Math.abs(num))/ Math.log((float)3));
             byte [] tryte = new byte[length + 1];
             num /= Math.pow(3, length);
             for (byte i = 0; i < length + 1; i++ ) {
