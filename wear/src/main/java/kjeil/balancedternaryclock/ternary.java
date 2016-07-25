@@ -39,9 +39,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.TimeZone; 
 import java.util.List;
 import java.util.Random;
+import java.util.TimeZone;
 
 // screen width and height
 
@@ -51,15 +51,15 @@ import java.util.Random;
  */
 public class ternary extends CanvasWatchFaceService {
     // for trouble
-    boolean greebo = false; // Greebo is on the prowl.
-    long x = 0; // count onDraw
-    long y = 0; // count handleUpdateTimeMessage
-    long z = 0;
-    long w = 0;
-    float floaty;
-    float floatz;
-    float floatx;
-    long tic = 0; // number of times onTimeTick called handler.
+    // boolean greebo = false; // Greebo is on the prowl.
+    // long x = 0; // count onDraw
+    // long y = 0; // count handleUpdateTimeMessage
+    // long z = 0;
+    // long w = 0;
+    // float floaty;
+    // float floatz;
+    // float floatx;
+    // long tic = 0; // number of times onTimeTick called handler.
 
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
@@ -160,7 +160,6 @@ public class ternary extends CanvasWatchFaceService {
         float xShift = xShiftDefault; // movement between characters
         float yShiftDefault = 80;
         float yShift = yShiftDefault;
-        float gearLift; // height to raise reduced gear symbol // greebo
         float yThird; // 1/3rd yShift
         float xThird;
         float dateOffset;
@@ -214,15 +213,17 @@ public class ternary extends CanvasWatchFaceService {
         // up date ambientScheme
         // color schemes 0 = bright rgb,  1 = dim rgb, 2 = dim r(grey)b 3 = orange aqua purple
         // 4 = bright orange theme, 5 = translucent orange theme, 6 = orange ambient
-        int [] redRay = {0xFFFF0000, 0xFF800000, 0xFF800000, 0xFFFF8000, 0xFFFF4000, 0x80FF4000, 0x80FF4000, 0xFF80FF00, 0xFF408000, 0xFF8000FF, 0xFF400080, 0xFFFF0000, 0xFF800000};
-        int [] greenRay = {0xFF00FF00, 0xFF008000, 0xFF404040, 0xFF00FFA0, 0xFFD08000, 0x80D08000, 0x80808080, 0xFF00FF80, 0xFF004020, 0xFF0000FF, 0xFF000040, 0xFFFFFFFF, 0xFF808080};
-        int [] blueRay = {0xFF0000FF, 0xFF000080, 0xFF000080, 0xFF8000FF, 0xFFC0C000, 0x80FFFF00, 0x80FFFF00, 0xFF00FFFF, 0xFF008080, 0xFF00FFFF, 0xFF008080, 0xFF0000FF, 0xFF000080};
-        int [] smallRay = {0xFF00FF00, 0xFF008000, 0xFF404040, 0xFF00FFA0, 0xFFD08000, 0x80D08000, 0x80808080, 0xFF00FF80, 0xFF008040, 0xFF0000FF, 0xFF000080, 0xFFFFFFFF, 0xFF808080 };
-        int [] greyRay = {0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080}; 
+        //  r = red, g = green, b = blue, o = orange, t = teal, p = purple, y = yellow, c = cyan
+        //                  rgb          rgb          dim rgb      dim rgb     otp       dim otp      roy         dim roy     rwy          cgt         dim cgt   cbp         dim cbp      rwb       dim rwb     dim rwb   
+        int [] redRay =   {0xFFFF0000, 0xFFFF0000, 0xFF800000, 0xFF800000, 0xFFFF8000, 0xFF804000, 0xFFFF4000, 0x80FF4000, 0x80FF4000, 0xFF80FF00, 0xFF408000, 0xFF8000FF, 0xFF400080, 0xFFFF0000, 0xFF800000, 0xFF800000};
+        int [] greenRay = {0xFF00FF00, 0xFF008000, 0xFF008000, 0xFF004000, 0xFF00FFA0, 0xFF008050, 0xFFD08000, 0x80D08000, 0x80808080, 0xFF00FF80, 0xFF004020, 0xFF0000FF, 0xFF000040, 0xFFFFFFFF, 0xFF808080, 0xFF404040};
+        int [] blueRay =  {0xFF0000FF, 0xFF0000FF, 0xFF000080, 0xFF000080, 0xFF8000FF, 0xFF400080, 0xFFC0C000, 0x80FFFF00, 0x80FFFF00, 0xFF00FFFF, 0xFF008080, 0xFF00FFFF, 0xFF008080, 0xFF0000FF, 0xFF000080, 0xFF000080};
+        int [] smallRay = {0xFF00FF00, 0xFF00FF00, 0xFF008000, 0xFF404040, 0xFF00FFA0, 0xFF008050, 0xFFD08000, 0x80D08000, 0x80808080, 0xFF00FF80, 0xFF008040, 0xFF0000FF, 0xFF000080, 0xFFFFFFFF, 0xFF808080, 0xFF808080};
+        int [] greyRay =  {0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080}; 
         List<int[]> rgbRays = new ArrayList<int[]>();
 
         // ambient map modTapCount -> ambient scheme number
-        byte [] ambientScheme = {2, 1, 2, 2, 5, 6, 6, 8, 8, 10, 10, 12, 12};
+        byte [] ambientScheme = {2, 3, 3, 3, 5, 5, 8, 8, 8, 10, 10, 12, 12, 14, 14, 15};
 
         // draw ran without handler
         boolean unhandled = true;
@@ -363,10 +364,10 @@ public class ternary extends CanvasWatchFaceService {
             yesterdayTomorrow();
 
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(resources.getColor(R.color.background));
+            mBackgroundPaint.setColor(0xFFFFFFFF);
 
             mTextPaint = new Paint();
-            mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mTextPaint = createTextPaint(0xFFFF8000);
 
             // small text
             smallTextPaint = new Paint();
@@ -383,7 +384,7 @@ public class ternary extends CanvasWatchFaceService {
 
         // call when changing timezones.
         private void yesterdayTomorrow(){
-            now.setTimeZone(TimeZone.getDefautl()); 
+            now.setTimeZone(TimeZone.getDefault()); 
             yesterday.setTimeZone(TimeZone.getDefault()); 
             tomorrow.setTimeZone(TimeZone.getDefault()); 
             yesterday.set(Calendar.HOUR_OF_DAY, 0);
@@ -575,7 +576,7 @@ public class ternary extends CanvasWatchFaceService {
         @Override
         public void onTimeTick() {
             super.onTimeTick();
-            tic++; 
+            // tic++; 
             if (isInAmbientMode()) {yesRefresh = true; handleUpdateTimeMessage();}
             else {if (uncalled) {yesRefresh = true; handleUpdateTimeMessage();}
             else {uncalled = true;}}
@@ -668,43 +669,42 @@ public class ternary extends CanvasWatchFaceService {
             
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
-            x++; // greebo
+            // x++; // greebo
 
             uncalled = true; // the handler was not called if this remains true.
-
-            // ready onMatrix
-            int width = bounds.width();
-            int height = bounds.height();
-
-            mCharWidth = width / mSettingsNumRows + 1;
-            matriXOffset = (width - mCharWidth * mSettingsNumRows)/2;
 
             // Draw the background.
             canvas.drawColor(Color.BLACK);
 
+            // Ready on Matrix
             if (yesMatrix && !isInAmbientMode()) {
-                int i, j;
-                for (i = 0; i < mSettingsNumRows; i++) {
-                    for (j = mSettingsNumRows - 1; j > 0; j--) {
-                        if (mMatrixIntensities[i][j] == 7 || (j < 5 && random.nextInt(24) == 0)) {
-                            canvas.drawText(mMatrixValues[i][j], matriXOffset + i * mCharWidth, j * mCharWidth, mMatrixPaints[7]);
-                            if (random.nextInt(2) == 0) {
-                                if (j < mSettingsNumRows - 1) {
-                                    mMatrixIntensities[i][j + 1] = 7;
-                                    mMatrixValues[i][j + 1] = matrixChars[random.nextInt(matrixChars.length)];
-                                }
-                                mMatrixIntensities[i][j] = 6;
-                            }
-                        } else {
-                            if (mMatrixIntensities[i][j] > 0) {
-                                canvas.drawText(mMatrixValues[i][j], matriXOffset + i * mCharWidth, j * mCharWidth, mMatrixPaints[mMatrixIntensities[i][j]]);
-                            }
-                            mMatrixIntensities[i][j] += random.nextInt(5) - 3;
-                            if (mMatrixIntensities[i][j] < 0) mMatrixIntensities[i][j] = 0;
-                            if (mMatrixIntensities[i][j] >= 7) mMatrixIntensities[i][j] = 6;
-                        }
-                    }
-                }
+               int width = bounds.width();
+               int height = bounds.height();
+
+               mCharWidth = width / mSettingsNumRows + 1;
+               matriXOffset = (width - mCharWidth * mSettingsNumRows)/2;
+               int i, j;
+               for (i = 0; i < mSettingsNumRows; i++) {
+                   for (j = mSettingsNumRows - 1; j > 0; j--) {
+                       if (mMatrixIntensities[i][j] == 7 || (j < 5 && random.nextInt(24) == 0)) {
+                           canvas.drawText(mMatrixValues[i][j], matriXOffset + i * mCharWidth, j * mCharWidth, mMatrixPaints[7]);
+                           if (random.nextInt(2) == 0) {
+                               if (j < mSettingsNumRows - 1) {
+                                   mMatrixIntensities[i][j + 1] = 7;
+                                   mMatrixValues[i][j + 1] = matrixChars[random.nextInt(matrixChars.length)];
+                               }
+                               mMatrixIntensities[i][j] = 6;
+                           }
+                       } else {
+                           if (mMatrixIntensities[i][j] > 0) {
+                               canvas.drawText(mMatrixValues[i][j], matriXOffset + i * mCharWidth, j * mCharWidth, mMatrixPaints[mMatrixIntensities[i][j]]);
+                           }
+                           mMatrixIntensities[i][j] += random.nextInt(5) - 3;
+                           if (mMatrixIntensities[i][j] < 0) mMatrixIntensities[i][j] = 0;
+                           if (mMatrixIntensities[i][j] >= 7) mMatrixIntensities[i][j] = 6;
+                       }
+                   }
+               }
             }
 
             
@@ -715,14 +715,18 @@ public class ternary extends CanvasWatchFaceService {
             k = 0; for (byte i : timeray ) {
                 j = i + (byte)1; 
                 if (k == 3 || k ==7) {
-                    posX = mXOffset;
-                    posY += yShift; }
-                    if (k==6 && isInAmbientMode()){ // no mid minute updates
-                       canvas.drawText(stringRay[0], posX, posY + vShiftRay[0], greyTextRay[0]);
-                       canvas.drawText(stringRay[2], posX, posY + vShiftRay[2], greyTextRay[2]);
-                       canvas.drawText(stringRay[3], posX, posY + vShiftRay[3], commonTextRay[j]);
-                       break; 
-                    } 
+                    if (k==7 && isInAmbientMode()){break;}
+                    posX = mXOffset; posY += yShift; 
+                }
+                /* // alternate symbols indicate ambient mode inacuracy
+                else { 
+                   if (k==6 && isInAmbientMode()){ // no mid minute updates
+                      canvas.drawText(stringRay[0], posX, posY + vShiftRay[0], greyTextRay[0]);
+                      canvas.drawText(stringRay[2], posX, posY + vShiftRay[2], greyTextRay[2]);
+                      canvas.drawText(stringRay[3], posX, posY + vShiftRay[3], commonTextRay[j]);
+                      break; 
+                   }
+                } */
                 canvas.drawText(stringRay[j], posX, posY + vShiftRay[j], textRay[j]);
                 k += 1; posX += xShift;
             }
@@ -753,17 +757,18 @@ public class ternary extends CanvasWatchFaceService {
                 posX += xThird;
             }
 
-            if (greebo) {
-                canvas.drawText(String.format("%1$.3f,%2$d,%3$d"
-                        ,floaty, tic, x)
-                        , xMargin ,(mCardBounds.top == 0) ? tallness :
-                                mCardBounds.top, smallTextPaint);
+            
+            // if (greebo) {
+            //     canvas.drawText(String.format("%1$.3f,%2$d,%3$d"
+            //             ,floaty, tic, x)
+            //             , xMargin ,(mCardBounds.top == 0) ? tallness :
+            //                     mCardBounds.top, smallTextPaint);
+            //     canvas.drawText(String.format("%1$d,%2$d,%3$ 5d, %4$d"
+            //             ,y, z, w, (int)vShiftRay[(int)x%3])
+            //             , xMargin,-yShiftDefault/(float)3 + 
+            //             ((mCardBounds.top == 0) ? tallness : (float)mCardBounds.top), smallTextPaint);
+            // }
 
-                canvas.drawText(String.format("%1$d,%2$d,%3$ 5d, %4$d"
-                        ,y, z, w, (int)vShiftRay[(int)x%3])
-                        , xMargin,-yShiftDefault/(float)3 + 
-                        ((mCardBounds.top == 0) ? tallness : (float)mCardBounds.top), smallTextPaint);
-            }
             // Draw every frame as long as we're visible and in interactive mode.
             // id est, burn battery burn!!!
             if (yesMatrix && isVisible() && !isInAmbientMode()) {
@@ -773,7 +778,7 @@ public class ternary extends CanvasWatchFaceService {
 
         // none -> none
         private void updateTim(){
-            z++; // greebo
+            // z++; // greebo
             now.setTimeInMillis(System.currentTimeMillis());
             if ( now.getTimeInMillis() >= tomorrow.getTimeInMillis() ){
                 tomorrow.add(Calendar.DATE, 1); yesterday.add(Calendar.DATE, 1);
@@ -781,7 +786,7 @@ public class ternary extends CanvasWatchFaceService {
                 yearTrits(); monthTrits(); dayTrits(); wkDayTrits();
             }
             tim = (float)(now.getTimeInMillis() - yesterday.getTimeInMillis())/3600000 - 12;
-            floaty = tim; // greebo
+            // floaty = tim; // greebo
             tritTim(); 
         }
 
@@ -919,14 +924,14 @@ public class ternary extends CanvasWatchFaceService {
          * Handle updating the time periodically in interactive mode.
          */
         private void handleUpdateTimeMessage() {
-            y++; 
+            // y++; 
             invalidate();
             uncalled = false;
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             // unhandled = false;
             // wasTime = nextTime;
+            // w = now.getTimeInMillis() - timeMs; 
             now.setTimeInMillis(System.currentTimeMillis());
-            w = now.getTimeInMillis() - timeMs; 
             timeMs = now.getTimeInMillis();
             millis = now.get(Calendar.MILLISECOND);
 
