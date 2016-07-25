@@ -761,10 +761,10 @@ public class ternary extends CanvasWatchFaceService {
         // none -> none
         private void updateTim(){
             z++; // greebo
-            now = new GregorianCalendar();
+            now.setTimeInMillis(System.currentTimeMillis());
             if ( now.getTimeInMillis() >= tomorrow.getTimeInMillis() ){
                 tomorrow.add(Calendar.DATE, 1); yesterday.add(Calendar.DATE, 1);
-                now = new GregorianCalendar();
+                now.setTimeInMillis(System.currentTimeMillis());
                 yearTrits(); monthTrits(); dayTrits(); wkDayTrits();
             }
             tim = (float)(now.getTimeInMillis() - yesterday.getTimeInMillis())/3600000 - 12;
@@ -912,7 +912,7 @@ public class ternary extends CanvasWatchFaceService {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             // unhandled = false;
             // wasTime = nextTime;
-            now = new GregorianCalendar();
+            now.setTimeInMillis(System.currentTimeMillis());
             w = now.getTimeInMillis() - timeMs; 
             timeMs = now.getTimeInMillis();
             millis = now.get(Calendar.MILLISECOND);
