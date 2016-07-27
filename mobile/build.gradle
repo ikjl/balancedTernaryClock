@@ -7,8 +7,8 @@ android {
       applicationId "kjeil.balancedternaryclock"
       minSdkVersion 15
       targetSdkVersion 24
-      versionCode 9
-      versionName '1.09'
+      versionCode 10
+      versionName '1.10'
    }
    buildTypes {
       release {

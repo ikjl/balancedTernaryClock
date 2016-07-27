@@ -16,6 +16,8 @@
 
 package kjeil.balancedternaryclock;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -52,8 +54,8 @@ import java.util.TimeZone;
 public class ternary extends CanvasWatchFaceService {
     // for trouble
     // boolean greebo = false; // Greebo is on the prowl.
-    // long x = 0; // count onDraw
-    // long y = 0; // count handleUpdateTimeMessage
+    long x = 0; // count onDraw
+    long y = 0; // count handleUpdateTimeMessage
     // long z = 0;
     // long w = 0;
     // float floaty;
@@ -104,6 +106,10 @@ public class ternary extends CanvasWatchFaceService {
     }
 
     private class Engine extends CanvasWatchFaceService.Engine {
+
+        // AlarmManager
+        private AlarmManager mAmbientStateAlarmManager;
+        private PendingIntent mAmbientStatePendingIntent;
 
         // Matrix by Dheera Venkatraman Backdrop (gethub.com/dheera/android-wearface-matrix)
         boolean yesMatrix = false; // dispaly matrix Smith scanner.
@@ -214,16 +220,16 @@ public class ternary extends CanvasWatchFaceService {
         // color schemes 0 = bright rgb,  1 = dim rgb, 2 = dim r(grey)b 3 = orange aqua purple
         // 4 = bright orange theme, 5 = translucent orange theme, 6 = orange ambient
         //  r = red, g = green, b = blue, o = orange, t = teal, p = purple, y = yellow, c = cyan
-        //                  rgb          rgb          dim rgb      dim rgb     otp       dim otp      roy         roy         dim roy     rwy         rwy          cgt         dim cgt   cbp         dim cbp      rwb       dim rwb     dim rwb   
-        int [] redRay =   {0xFFFF0000, 0xFFFF0000, 0xFF800000, 0xFF800000, 0xFFFF8000, 0xFF804000, 0xFFFF4000, 0xFFFF4000, 0xFF802000, 0xFF802000, 0xFF802000, 0xFF80FF00, 0xFF408000, 0xFF8000FF, 0xFF400080, 0xFFFF0000, 0xFF800000, 0xFF800000};
-        int [] greenRay = {0xFF00FF00, 0xFF008000, 0xFF008000, 0xFF004000, 0xFF00FFA0, 0xFF008050, 0xFFFF9D00, 0xFFD08000, 0xFF684000, 0xFF808080, 0xFF404040, 0xFF00FF80, 0xFF004020, 0xFF0000FF, 0xFF000040, 0xFFFFFFFF, 0xFF808080, 0xFF404040};
-        int [] blueRay =  {0xFF0000FF, 0xFF0000FF, 0xFF000080, 0xFF000080, 0xFF8000FF, 0xFF400080, 0xFFC0C000, 0xFFC0C000, 0xFF808000, 0xFF808000, 0xFF808000, 0xFF00FFFF, 0xFF008080, 0xFF00FFFF, 0xFF008080, 0xFF0000FF, 0xFF000080, 0xFF000080};
-        int [] smallRay = {0xFF00FF00, 0xFF00FF00, 0xFF008000, 0xFF404040, 0xFF00FFA0, 0xFF008050, 0xFFD08000, 0xFFD08000, 0xFF684000, 0xFF404040, 0xFF404040, 0xFF00FF80, 0xFF008040, 0xFF0000FF, 0xFF000080, 0xFFFFFFFF, 0xFF808080, 0xFF808080};
-        int [] greyRay =  {0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080}; 
+        //                  rgb          rgb          dim rgb      dim rgb     otp       dim otp      roy         dim roy     rwy          cgt         dim cgt   cbp         dim cbp      rwb       dim rwb     dim rwb   
+        int [] redRay =   {0xFFFF0000, 0xFFFF0000, 0xFF800000, 0xFF800000, 0xFFFF8000, 0xFF804000, 0xFFFF4000, 0x80FF4000, 0x80FF4000, 0xFF80FF00, 0xFF408000, 0xFF8000FF, 0xFF400080, 0xFFFF0000, 0xFF800000, 0xFF800000};
+        int [] greenRay = {0xFF00FF00, 0xFF008000, 0xFF008000, 0xFF004000, 0xFF00FFA0, 0xFF008050, 0xFFD08000, 0x80D08000, 0x80808080, 0xFF00FF80, 0xFF004020, 0xFF0000FF, 0xFF000040, 0xFFFFFFFF, 0xFF808080, 0xFF404040};
+        int [] blueRay =  {0xFF0000FF, 0xFF0000FF, 0xFF000080, 0xFF000080, 0xFF8000FF, 0xFF400080, 0xFFC0C000, 0x80FFFF00, 0x80FFFF00, 0xFF00FFFF, 0xFF008080, 0xFF00FFFF, 0xFF008080, 0xFF0000FF, 0xFF000080, 0xFF000080};
+        int [] smallRay = {0xFF00FF00, 0xFF00FF00, 0xFF008000, 0xFF404040, 0xFF00FFA0, 0xFF008050, 0xFFD08000, 0x80D08000, 0x80808080, 0xFF00FF80, 0xFF008040, 0xFF0000FF, 0xFF000080, 0xFFFFFFFF, 0xFF808080, 0xFF808080};
+        int [] greyRay =  {0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080}; 
         List<int[]> rgbRays = new ArrayList<int[]>();
 
         // ambient map modTapCount -> ambient scheme number
-        byte [] ambientScheme = {2, 3, 3, 3, 5, 5, 9, 8, 8, 9, 10, 12, 12, 14, 14, 16, 16, 17};
+        byte [] ambientScheme = {2, 3, 3, 3, 5, 5, 8, 8, 8, 10, 10, 12, 12, 14, 14, 15};
 
         // draw ran without handler
         boolean unhandled = true;
@@ -314,10 +320,26 @@ public class ternary extends CanvasWatchFaceService {
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
 
+            // AlarmManager
+            // setAmbientEnabled();
+
+            mAmbientStateAlarmManager =
+                  (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            Intent ambientStateIntent =
+                  new Intent(getApplicationContext(), ternary.class);
+
+            mAmbientStatePendingIntent = PendingIntent.getActivity(
+                  getApplicationContext(),
+                  0,
+                  ambientStateIntent,
+                  PendingIntent.FLAG_UPDATE_CURRENT);
+
             setWatchFaceStyle(new WatchFaceStyle.Builder(ternary.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
-                    .setPeekOpacityMode(WatchFaceStyle.PEEK_OPACITY_MODE_TRANSLUCENT)
+                    //.setCardPeekMode(WatchFaceStyle.PEEK_OPACITY_MODE_TRANSLUCENT)
+                    .setCardPeekMode(WatchFaceStyle.PEEK_OPACITY_MODE_OPAQUE)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
+                    //.setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_PERSISTENT)
                     .setShowSystemUiTime(false)
                     .setAcceptsTapEvents(true)
                     .build());
@@ -667,7 +689,7 @@ public class ternary extends CanvasWatchFaceService {
             
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
-            // x++; // greebo
+            x++; // greebo
 
             uncalled = true; // the handler was not called if this remains true.
 
@@ -757,10 +779,10 @@ public class ternary extends CanvasWatchFaceService {
 
             
             // if (greebo) {
-            //     canvas.drawText(String.format("%1$.3f,%2$d,%3$d"
-            //             ,floaty, tic, x)
-            //             , xMargin ,(mCardBounds.top == 0) ? tallness :
-            //                     mCardBounds.top, smallTextPaint);
+                 canvas.drawText(String.format("%1$d %2$d"
+                         , x, y)
+                         , xMargin ,(mCardBounds.top == 0) ? tallness :
+                                 mCardBounds.top, smallTextPaint);
             //     canvas.drawText(String.format("%1$d,%2$d,%3$ 5d, %4$d"
             //             ,y, z, w, (int)vShiftRay[(int)x%3])
             //             , xMargin,-yShiftDefault/(float)3 + 
@@ -922,7 +944,7 @@ public class ternary extends CanvasWatchFaceService {
          * Handle updating the time periodically in interactive mode.
          */
         private void handleUpdateTimeMessage() {
-            // y++; 
+            // y++; // greebo
             invalidate();
             uncalled = false;
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
@@ -936,12 +958,22 @@ public class ternary extends CanvasWatchFaceService {
             // schedule a new alarm
             if (isInAmbientMode()) {
                 wasInAm = true;
-                delayMs = 0;
+                // delayMs = 0 ; 
+                // Calculate the next trigger time
+                if (isVisible()){
+                  leapMinute();
+                  delayMs = AMBIENT_INTERVAL_MS - (timeMs % AMBIENT_INTERVAL_MS) + leap; 
+                  mAmbientStateAlarmManager.setExact(
+                     AlarmManager.RTC_WAKEUP,
+                     delayMs + timeMs,
+                     mAmbientStatePendingIntent);;
+                     y++; 
                 //if (isVisible()) {
                     //leapMinute();
                     //delayMs = AMBIENT_INTERVAL_MS - (timeMs % AMBIENT_INTERVAL_MS) + leap;
                     //mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
                 }
+            }
             else {
                 wasInAm = false;
                 leapSecond();
