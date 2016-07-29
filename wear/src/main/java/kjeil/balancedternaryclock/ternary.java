@@ -258,19 +258,24 @@ public class ternary extends CanvasWatchFaceService {
 
 
         // counter for time loops
+        int c;
         int k;
         int j; // secondary counter
         // register for milliseconds
         long millis = 0;
-        // float for calculating trits from time.
-        float tim = 0;
+        // int for calculating trits from time.
+        long time;
+        long timeMod; 
+        int timeSlate;
+        long nextHour;
+        long nextMinute;
+        long [] hours = new long [25];
+        long [] minutes = new long [61]; 
+        long [] seconds = new long [61];
+        
         // ints for minute and hour offsets.
-        int minInt = 0;
+        int minuteInt = 0;
         int hourInt = 0;
-        // time to update (save battery)
-        float nextMinute; 
-        float nextHour;
-        boolean yesRollMinutes = false; 
 
         // lists for time to trit for loop conversions.
         int [] trits3 = {9, 3, 1};
@@ -322,6 +327,18 @@ public class ternary extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
             // Resources resources = ternary.this.getResources(); // !used
+
+            // for loops don't seem to work in the create engine.
+            // define arrays to match hours
+            for (c = 0 ; c < 25; c++) {
+               hours[c] = c * 3600000 + 1800000;
+            }
+            for (c = 0 ; c < 61; c++) {
+               minutes[c] = c * 60000 + 30000;
+            }
+            for (c = 0 ; c < 61; c++){
+               seconds[c] = c * 1000 + 500;
+            }
 
             // Matrix Continued.
             int i, j;
@@ -711,7 +728,7 @@ public class ternary extends CanvasWatchFaceService {
             }
 
             
-            updateTim(); 
+            updateTime(); 
 
             // Draw hms trits
             posX = (mXOffset + xShift); posY = mYOffset;
@@ -780,7 +797,7 @@ public class ternary extends CanvasWatchFaceService {
         }
 
         // none -> none
-        private void updateTim(){
+        private void updateTime(){
             // z++; // greebo
             now.setTimeInMillis(System.currentTimeMillis());
             if ( now.getTimeInMillis() >= tomorrow.getTimeInMillis() ){
@@ -789,13 +806,13 @@ public class ternary extends CanvasWatchFaceService {
                 now.setTimeInMillis(System.currentTimeMillis());
                 yearTrits(); monthTrits(); dayTrits(); wkDayTrits();
             }
-            tim = (float)(now.getTimeInMillis() - yesterday.getTimeInMillis())/3600000 - 12;
-            // floaty = tim; // greebo
-            tritTim(); 
+            time = now.getTimeInMillis() - yesterday.getTimeInMillis();
+            // floaty = time; // greebo
+            tritTime(); 
         }
 
         // none -> none
-        private void tritTim(){
+        private void tritTime(){
             // find hrs 9s, 3s, 1s.
             hourTrits(yesRefresh);
 
@@ -811,19 +828,18 @@ public class ternary extends CanvasWatchFaceService {
         
         // bool -> none
         private void hourTrits(boolean yesRefresh) {
-            if (yesRefresh || tim >= nextHour) {
+            if (yesRefresh || time >= nextHour) {
+                c = 0; do { c++; } while(time >= hours[c]);
+                nextHour = hours[c]; hourInt = c - 12; timeSlate = hourInt;
                 k = 0;
-                hourInt = 0;
                 // i is for item.
                 for (int i : trits3) {
-                    if (tim > ((float) i / 2)) {
-                        tim -= i;
-                        hourInt -= i;
+                    if (timeSlate > ((float) i / 2)) {
+                        timeSlate -= i;
                         timeray[k] = 1;
                     } else {
-                        if (tim < ((float) i / -2)) {
-                            tim += i;
-                            hourInt += i;
+                        if (timeSlate < ((float) i / -2)) {
+                            timeSlate += i;
                             timeray[k] = -1;
                         } else {
                             timeray[k] = 0;
@@ -831,42 +847,31 @@ public class ternary extends CanvasWatchFaceService {
                     }
                     k += 1;
                 }
-            // the midnight change after the 11th hour will be handled by yesterdayTomorrow()
-            // or updateTime
-            nextHour = (float).5 - (float)hourInt; 
-            } else { tim += hourInt; }
+            }
         }
 
         private void minTrits (boolean yesRefresh) {
-            if (!isInAmbientMode()){
-               if (yesRollMinutes) { if (yesRefresh || tim < 0) {yesRollMinutes = false; yesRefresh = true; } }
-               else {if (!yesRefresh) {if (tim >= nextMinute) {yesRefresh = true;}}}
-            } else { yesRefresh = true; nextMinute = (float)-.5; }
-            if (yesRefresh) {
-                if (k != 3) {k = 3;}
-                tim *= 60;
-                minInt = 0;
-                // i is for item.
-                for (int i : trits4) {
-                    if (tim > ((float) i / 2)) {
-                        tim -= i;
-                        if (allowSecs) {minInt -= i;}
-                        timeray[k] = 1;
-                    } else {
-                        if (tim < ((float) i / -2)) {
-                            tim += i;
-                            if (allowSecs) {minInt += i;}
-                            timeray[k] = -1;
-                        } else { timeray[k] = 0; }
-                    }
-                    k += 1;
-                }
-                if (!isInAmbientMode()) {
-                   if (minInt == (int)-30) {yesRollMinutes = true; }
-                   else {nextMinute = ((float).5 - (float)minInt)/(float)60; }  
-                }
-            // midnight handled by yesterdayTomorrow() or updateTim()
-            } else { if (yesSecs) { tim *= 60; tim += minInt; } }
+            if (yesRefresh || time >= nextMinute){
+               timeMod = time % 3600000; 
+               c = 0; do { c++; } while(timeMod >= minutes[c]);
+               minuteInt = c - 60; timeSlate = minuteInt;
+               // - 1770000 subtracts half an hour and adds half a minute
+               nextMinute = nextHour - (long)1770000 + (long)60000 * minuteInt;
+               // i is for item
+               k = 3; 
+               for (int i : trits4) {
+                   if (timeSlate > ((float) i / 2)) {
+                       timeSlate -= i;
+                       timeray[k] = 1;
+                   } else {
+                       if (timeSlate < ((float) i / -2)) {
+                           timeSlate += i;
+                           timeray[k] = -1;
+                       } else { timeray[k] = 0; }
+                   }
+                   k += 1;
+               }
+            }
         }
 
         private void yearTrits () {
@@ -897,15 +902,18 @@ public class ternary extends CanvasWatchFaceService {
 
         // none -> none
         private void secTrits () {
-            if (k != 7) {k = 7;}
-            tim *= 60;
+            k = 7;
+            timeMod = time % 60000;
+            c = 0; do { c++; } while(timeMod >= seconds[c]);
+            timeSlate = c - 60;
+                
             for (int i : trits4) {
-                if (tim > ((float) i / 2)) {
-                    tim -= i;
+                if (timeSlate > ((float) i / 2)) {
+                    timeSlate -= i;
                     timeray[k] = 1;
                 } else {
-                    if (tim < ((float) i / -2)) {
-                        tim += i;
+                    if (timeSlate < ((float) i / -2)) {
+                        timeSlate += i;
                         timeray[k] = -1;
                     } else {
                         timeray[k] = 0;
