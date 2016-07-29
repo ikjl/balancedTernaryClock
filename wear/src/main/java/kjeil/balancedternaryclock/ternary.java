@@ -108,7 +108,7 @@ public class ternary extends CanvasWatchFaceService {
         // Matrix by Dheera Venkatraman Backdrop (gethub.com/dheera/android-wearface-matrix)
         boolean yesMatrix = false; // dispaly matrix Smith scanner.
         private final int mSettingsNumRows = 23; 
-        private int mMatrixBaseColor = Color.GREEN; 
+        // private int mMatrixBaseColor = Color.GREEN; // !used
         private Random random = new Random(); 
         private Paint[] mMatrixPaints = new Paint[8];
         private final String[] matrixChars = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
@@ -126,7 +126,6 @@ public class ternary extends CanvasWatchFaceService {
         byte [] monthTryte;
         byte [] dayTryte;
         byte [] wkDayTryte; 
-        int [] wkDay; // stors the day of the week for wkDayTrits()
         List<byte[]> dateTrytes = new ArrayList<byte[]>(3);
 
         // screen size:
@@ -141,7 +140,7 @@ public class ternary extends CanvasWatchFaceService {
         float baseLedge; // ledge without cards
         float ledgeSpace; 
         float mantle; // portion of display above ledge
-        boolean yesLiftDate = false; // keep date above the ledge
+        boolean yesLiftDate = true; // keep date above the ledge
         float density;
         float textSize; // normal text size
         float smallTextSize; // small text size
@@ -163,7 +162,6 @@ public class ternary extends CanvasWatchFaceService {
         float yThird; // 1/3rd yShift
         float xThird;
         float dateOffset;
-        byte rayTrit;
         // the * is for the minute in ambient mode which does not update on the half minute and would be off
         // yet the display remains accurate to the nearest three minutes, so a wild card is shown for the
         // minute. This may be removed once AlarmManger is successfuly implemented.
@@ -213,17 +211,17 @@ public class ternary extends CanvasWatchFaceService {
         // up date ambientScheme
         // color schemes 0 = bright rgb,  1 = dim rgb, 2 = dim r(grey)b 3 = orange aqua purple
         // 4 = bright orange theme, 5 = translucent orange theme, 6 = orange ambient
-        //  r = red, g = green, b = blue, o = orange, t = teal, p = purple, y = yellow, c = cyan
-        //                  rgb          rgb          dim rgb      dim rgb     otp       dim otp      roy         roy         dim roy     rwy         rwy          cgt         dim cgt   cbp         dim cbp      rwb       dim rwb     dim rwb   
-        int [] redRay =   {0xFFFF0000, 0xFFFF0000, 0xFF800000, 0xFF800000, 0xFFFF8000, 0xFF804000, 0xFFFF4000, 0xFFFF4000, 0xFF802000, 0xFF802000, 0xFF802000, 0xFF80FF00, 0xFF408000, 0xFF8000FF, 0xFF400080, 0xFFFF0000, 0xFF800000, 0xFF800000};
-        int [] greenRay = {0xFF00FF00, 0xFF008000, 0xFF008000, 0xFF004000, 0xFF00FFA0, 0xFF008050, 0xFFFF9D00, 0xFFD08000, 0xFF684000, 0xFF808080, 0xFF404040, 0xFF00FF80, 0xFF004020, 0xFF0000FF, 0xFF000040, 0xFFFFFFFF, 0xFF808080, 0xFF404040};
-        int [] blueRay =  {0xFF0000FF, 0xFF0000FF, 0xFF000080, 0xFF000080, 0xFF8000FF, 0xFF400080, 0xFFC0C000, 0xFFC0C000, 0xFF808000, 0xFF808000, 0xFF808000, 0xFF00FFFF, 0xFF008080, 0xFF00FFFF, 0xFF008080, 0xFF0000FF, 0xFF000080, 0xFF000080};
-        int [] smallRay = {0xFF00FF00, 0xFF00FF00, 0xFF008000, 0xFF404040, 0xFF00FFA0, 0xFF008050, 0xFFD08000, 0xFFD08000, 0xFF684000, 0xFF404040, 0xFF404040, 0xFF00FF80, 0xFF008040, 0xFF0000FF, 0xFF000080, 0xFFFFFFFF, 0xFF808080, 0xFF808080};
-        int [] greyRay =  {0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080}; 
+        //  r = red, g = green, b = blue, o = orange, t = teal, p = purple, y = yellow, c = cyan, m = maroon
+        //                  rgb          rgb          dim rgb      dim rgb     otp       dim otp       otm       dim otm      roy         roy         dim roy     rwy         rwy          cgt         dim cgt   cbp         dim cbp      rwb       dim rwb     dim rwb   
+        int [] redRay =   {0xFFFF0000, 0xFFFF0000, 0xFF800000, 0xFF800000, 0xFFFF8000, 0xFF804000, 0xFFFF4000, 0xFF802000, 0xFFFF4000, 0xFFFF4000, 0xFF802000, 0xFF802000, 0xFF802000, 0xFF80FF00, 0xFF408000, 0xFF8000FF, 0xFF400080, 0xFFFF0000, 0xFF800000, 0xFF800000};
+        int [] greenRay = {0xFF00FF00, 0xFF008000, 0xFF008000, 0xFF004000, 0xFF00FFA0, 0xFF008050, 0xFF00FFC0, 0xFF008060, 0xFFFF9D00, 0xFFD08000, 0xFF684000, 0xFF808080, 0xFF404040, 0xFF00FF80, 0xFF004020, 0xFF0000FF, 0xFF000040, 0xFFFFFFFF, 0xFF808080, 0xFF404040};
+        int [] blueRay =  {0xFF0000FF, 0xFF0000FF, 0xFF000080, 0xFF000080, 0xFF8000FF, 0xFF400080, 0xFFFF0080, 0xFF790080, 0xFFC0C000, 0xFFC0C000, 0xFF808000, 0xFF808000, 0xFF808000, 0xFF00FFFF, 0xFF008080, 0xFF00FFFF, 0xFF008080, 0xFF0000FF, 0xFF000080, 0xFF000080};
+        int [] smallRay = {0xFF00FF00, 0xFF00FF00, 0xFF008000, 0xFF404040, 0xFF00FFA0, 0xFF008050, 0xFF00FFFF, 0xFF008080, 0xFFD08000, 0xFFD08000, 0xFF684000, 0xFF404040, 0xFF404040, 0xFF00FF80, 0xFF008040, 0xFF0000FF, 0xFF000080, 0xFFFFFFFF, 0xFF808080, 0xFF808080};
+        int [] greyRay =  {0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080}; 
         List<int[]> rgbRays = new ArrayList<int[]>();
 
         // ambient map modTapCount -> ambient scheme number
-        byte [] ambientScheme = {2, 3, 3, 3, 5, 5, 9, 8, 8, 9, 10, 12, 12, 14, 14, 16, 16, 17};
+        byte [] ambientScheme = {2, 3, 3, 3, 5, 5, 7, 7, 11, 10, 10, 11, 12, 14, 14, 16, 16, 18, 18, 19};
 
         // draw ran without handler
         boolean unhandled = true;
@@ -269,6 +267,10 @@ public class ternary extends CanvasWatchFaceService {
         // ints for minute and hour offsets.
         int minInt = 0;
         int hourInt = 0;
+        // time to update (save battery)
+        float nextMinute; 
+        float nextHour;
+        boolean yesRollMinutes = false; 
 
         // lists for time to trit for loop conversions.
         int [] trits3 = {9, 3, 1};
@@ -308,8 +310,6 @@ public class ternary extends CanvasWatchFaceService {
          */
         boolean mLowBitAmbient;
 
-        private boolean isTrue = false;
-
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
@@ -321,7 +321,7 @@ public class ternary extends CanvasWatchFaceService {
                     .setShowSystemUiTime(false)
                     .setAcceptsTapEvents(true)
                     .build());
-            Resources resources = ternary.this.getResources();
+            // Resources resources = ternary.this.getResources(); // !used
 
             // Matrix Continued.
             int i, j;
@@ -382,6 +382,7 @@ public class ternary extends CanvasWatchFaceService {
 
         // call when changing timezones.
         private void yesterdayTomorrow(){
+            yesRefresh = true; 
             now.setTimeZone(TimeZone.getDefault()); 
             yesterday.setTimeZone(TimeZone.getDefault()); 
             tomorrow.setTimeZone(TimeZone.getDefault()); 
@@ -465,7 +466,9 @@ public class ternary extends CanvasWatchFaceService {
                     // if (greebo) {ledge -= (float).4*yShiftDefault;} // greebo
                     puff = (ledge - dispTop - ledgeSpace) / mantle; 
                     if (puff < (float)0) {puff =0; }
-                    puffer (); // resize
+                    // call resize method
+                    if (isInAmbientMode()) {puffer((float)1);}
+                    else {puffer(puff);}
                 } else { invalidate();} // watch unaffected by card movement
             }
         }
@@ -582,37 +585,39 @@ public class ternary extends CanvasWatchFaceService {
 
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
-            super.onAmbientModeChanged(inAmbientMode);
-            if (mAmbient != inAmbientMode) {
-                mAmbient = inAmbientMode;
-                if (mLowBitAmbient) {
-                    mTextPaint.setAntiAlias(!inAmbientMode);
-                    setTextArrayAntiAlias(textRay, !inAmbientMode);
-                    setTextArrayAntiAlias(commonTextRay, !inAmbientMode);
-                    setTextArrayAntiAlias(smallTextRay, !inAmbientMode);
-                    setTextArrayAntiAlias(greyTextRay, !inAmbientMode);
-                }
+           super.onAmbientModeChanged(inAmbientMode);
+           if (mAmbient != inAmbientMode) {
+              mAmbient = inAmbientMode;
+              if (mLowBitAmbient) {
+                 mTextPaint.setAntiAlias(!inAmbientMode);
+                 setTextArrayAntiAlias(textRay, !inAmbientMode);
+                 setTextArrayAntiAlias(commonTextRay, !inAmbientMode);
+                 setTextArrayAntiAlias(smallTextRay, !inAmbientMode);
+                 setTextArrayAntiAlias(greyTextRay, !inAmbientMode);
 
-                if (isInAmbientMode()){
+                 if (isInAmbientMode()){
+                    if (puff != (float)1) { puffer((float)1);}
                     yesSecs = false;
                     setTextArrayColor(smallTextRay, ambientScheme[modTapCount], false);
                     setTextArrayColor(textRay, ambientScheme[modTapCount], false);
                     setTextArrayColor(commonTextRay, ambientScheme[modTapCount], false);
                     setTextArrayColor(greyTextRay, ambientScheme[modTapCount], true);
-                }
-                else {
+                 }
+                 else {
+                    if (puff != (float)1) {puffer(puff);}
                     yesSecs = allowSecs; yesRefresh = true; 
                     setTextArrayColor(smallTextRay, modTapCount, false);
                     setTextArrayColor(textRay, modTapCount, false);
                     setTextArrayColor(commonTextRay, modTapCount, false);
                     setTextArrayColor(greyTextRay, modTapCount, true); 
-                }
-            }
+                 }
+              } 
+           }
 
-            // Whether the timer should be running depends on whether we're visible (as well as
-            // whether we're in ambient mode), so we may need to start or stop the timer.
-            //? not sure of the relevance because the timer seems to stop in ambient mode, vissible or not.
-            yesRefresh = !isInAmbientMode(); handleUpdateTimeMessage();
+           // Whether the timer should be running depends on whether we're visible (as well as
+           // whether we're in ambient mode), so we may need to start or stop the timer.
+           //? not sure of the relevance because the timer seems to stop in ambient mode, vissible or not.
+           yesRefresh = !isInAmbientMode(); handleUpdateTimeMessage();
         }
 
         /**
@@ -621,7 +626,7 @@ public class ternary extends CanvasWatchFaceService {
          */
         @Override
         public void onTapCommand(int tapType, int x, int y, long eventTime) {
-            Resources resources = ternary.this.getResources();
+            // Resources resources = ternary.this.getResources(); // !used
             switch (tapType) {
                 case TAP_TYPE_TOUCH:
                     // The user has started touching the screen.
@@ -649,7 +654,7 @@ public class ternary extends CanvasWatchFaceService {
         }
 
         // none -> none changes size of text and text movements.
-        public void puffer(){
+        public void puffer(float puff){
             tSize = textSize * puff; stSize = smallTextSize * puff; 
             yShift = yShiftDefault * puff; xShift = xShiftDefault * puff;
             setTextArraySize(smallTextRay, stSize, false); setTextArraySize(textRay, tSize, false);
@@ -677,7 +682,7 @@ public class ternary extends CanvasWatchFaceService {
             // Ready on Matrix
             if (yesMatrix && !isInAmbientMode()) {
                int width = bounds.width();
-               int height = bounds.height();
+               // int height = bounds.height(); // !used
 
                mCharWidth = width / mSettingsNumRows + 1;
                matriXOffset = (width - mCharWidth * mSettingsNumRows)/2;
@@ -779,6 +784,7 @@ public class ternary extends CanvasWatchFaceService {
             // z++; // greebo
             now.setTimeInMillis(System.currentTimeMillis());
             if ( now.getTimeInMillis() >= tomorrow.getTimeInMillis() ){
+                yesRefresh = true; 
                 tomorrow.add(Calendar.DATE, 1); yesterday.add(Calendar.DATE, 1);
                 now.setTimeInMillis(System.currentTimeMillis());
                 yearTrits(); monthTrits(); dayTrits(); wkDayTrits();
@@ -791,26 +797,13 @@ public class ternary extends CanvasWatchFaceService {
         // none -> none
         private void tritTim(){
             // find hrs 9s, 3s, 1s.
-            openGate = false;
-            if (yesRefresh || now.get(Calendar.MINUTE) == 30) {
-                openGate = true;
-            } else {
-                openGate = now.get(Calendar.SECOND) == 0 && now.get(Calendar.MINUTE) == 0 
-                   && now.get(Calendar.HOUR_OF_DAY) == 0;
-            }
-            hourTrits(openGate);
+            hourTrits(yesRefresh);
 
             // minutes 27s, 9s, 3s, 1s
-            if (openGate || wasInAm || now.get(Calendar.SECOND) == 30) {
-                openGate = true;
-            } else {
-                openGate = now.get(Calendar.SECOND) == 0 && (now.get(Calendar.MINUTE) == 30
-                        || (now.get(Calendar.MINUTE) == 0 && now.get(Calendar.HOUR_OF_DAY) == 0));
-            }
-            minTrits(openGate);
+            minTrits(yesRefresh);
 
             // seconds 27s, 9s, 3s, 1s
-            if (yesRefresh||yesSecs) {
+            if (yesSecs) {
                 secTrits();
             }
             if (yesRefresh) {yesRefresh = false; }
@@ -818,7 +811,7 @@ public class ternary extends CanvasWatchFaceService {
         
         // bool -> none
         private void hourTrits(boolean yesRefresh) {
-            if (yesRefresh) {
+            if (yesRefresh || tim >= nextHour) {
                 k = 0;
                 hourInt = 0;
                 // i is for item.
@@ -838,10 +831,17 @@ public class ternary extends CanvasWatchFaceService {
                     }
                     k += 1;
                 }
+            // the midnight change after the 11th hour will be handled by yesterdayTomorrow()
+            // or updateTime
+            nextHour = (float).5 - (float)hourInt; 
             } else { tim += hourInt; }
         }
 
         private void minTrits (boolean yesRefresh) {
+            if (!isInAmbientMode()){
+               if (yesRollMinutes) { if (yesRefresh || tim < 0) {yesRollMinutes = false; yesRefresh = true; } }
+               else {if (!yesRefresh) {if (tim >= nextMinute) {yesRefresh = true;}}}
+            } else { yesRefresh = true; nextMinute = (float)-.5; }
             if (yesRefresh) {
                 if (k != 3) {k = 3;}
                 tim *= 60;
@@ -861,6 +861,11 @@ public class ternary extends CanvasWatchFaceService {
                     }
                     k += 1;
                 }
+                if (!isInAmbientMode()) {
+                   if (minInt == (int)-30) {yesRollMinutes = true; }
+                   else {nextMinute = ((float).5 - (float)minInt)/(float)60; }  
+                }
+            // midnight handled by yesterdayTomorrow() or updateTim()
             } else { if (yesSecs) { tim *= 60; tim += minInt; } }
         }
 
