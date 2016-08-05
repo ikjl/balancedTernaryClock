@@ -891,7 +891,7 @@ public class ternary extends CanvasWatchFaceService {
 
         // float -> byte[array]
         private byte [] tritArrayer (float num) {
-            byte length = (byte)Math.round(Math.log(Math.abs(num))/ Math.log((float)3));
+            byte length = (byte)(Math.log(Math.abs(num + num))/ Math.log((float)3));
             byte [] tryte = new byte[length + 1];
             num /= Math.pow(3, length);
             for (byte i = 0; i < length + 1; i++ ) {
