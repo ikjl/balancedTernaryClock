@@ -191,22 +191,22 @@ public class ternary extends CanvasWatchFaceService {
         float [] smallVShiftRay = new float[31];
         float [] vShiftRayDef = { (float)0 , (float)-11, (float)-5, (float)0, (float)-5, (float)-5
                                     // -                             skull
-                                  , (float)5, (float)-5, (float)0, (float)0, (float)3, (float)5
+                                  , (float)5, (float)0, (float)0, (float)0, (float)3, (float)5
                                      // rad                          gear
-                                  , (float)0, (float)5, (float)0, (float)-13, (float)-11, (float)-11
+                                  , (float)0, (float)2, (float)0, (float)-13, (float)-11, (float)-11
                                   // umbrella                        ambic
                                   , (float)0, (float)5, (float)0, (float)-2, (float)0, (float)5
                                   // frown                           rock paper sissors
-                                  , (float)0, (float)-5, (float)0, (float)0, (float)0, (float)0,  (float)0  };
+                                  , (float)0, (float)-7, (float)0, (float)0, (float)0, (float)0,  (float)0  };
         float [] smallVShiftRayDef = new float[31]; 
         float [] greyVShiftRay = new float[31];
         int stringRayOffset;  
         int stringRayMod = stringRay.length - 1; 
         int sTapCount; // track taps to change the characters.
         // randomly change the characters
-        boolean stringRandHour; boolean stringRandMinute; boolean stringRandSec;
+        boolean stringRandHour; boolean stringRandMin; boolean stringRandSec;
         // randomly change the colors
-        boolean colorRandHour; boolean colorRandMinute; boolean colorRandSec;
+        boolean colorRandHour; boolean colorRandMin; boolean colorRandSec;
 
         // for yShiftStringArray
         Rect rectangle = new Rect();
@@ -687,20 +687,36 @@ public class ternary extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    //Tap top
+                    //Tap
                     // scan for matrix agents.
                     if (y < tallness * (float).25) { yesMatrix = !yesMatrix;}
                     else if (y > tallness * (float).75)
                     {  if (x > wideness * (float).5) {sTapCount++;} else {sTapCount -= 1;}
-                       // greebo. Put in something to change randomly with second, minute, hour.
-                       stringRayOffset = (((sTapCount * 3)% stringRayMod) + stringRayMod) % stringRayMod;
-                       puffer(puff);
+                       stringRayOffset = (((sTapCount * 3)% (stringRayMod + 9)) + stringRayMod +9) % (stringRayMod + 9);
+                       stringRandHour = false; stringRandMin = false; stringRandSec = false;
+                       if (stringRayOffset >= stringRayMod)
+                       {  stringRayOffset -= stringRayMod;
+                          // stringRayOffset incriments by 3
+                          if (stringRayOffset == 0) { stringRandSec = true ;}
+                          else if (stringRayOffset == 3) { stringRandMin = true ;}
+                          else { stringRandHour = true;}
+                          stringRayOffset = random.nextInt(stringRayMod/3) * 3; 
+                       }
+                       pufferer(puff);
                     }
                     else {
                        // right and left
                     if (x > wideness * (float).5) {mTapCount++;} else {mTapCount -= 1;}
-                    modTapCount = (mTapCount % ambientScheme.length + ambientScheme.length) % ambientScheme.length;
-
+                    modTapCount = (mTapCount % (ambientScheme.length + 3) 
+                          + ambientScheme.length + 3) % (ambientScheme.length + 3);
+                    colorRandSec = false; colorRandMin = false; colorRandHour = false; 
+                    if (modTapCount >= ambientScheme.length)
+                    {  modTapCount -= ambientScheme.length;
+                       if (modTapCount == 0) { colorRandSec = true ;}
+                       else if (modTapCount == 1) { colorRandMin = true ;}
+                       else { colorRandHour = true;}
+                       modTapCount = random.nextInt(ambientScheme.length);
+                    }
                     setTextArrayColor(smallTextRay, modTapCount, false);
                     setTextArrayColor(textRay, modTapCount, false);
                     setTextArrayColor(commonTextRay, modTapCount, false);
@@ -711,8 +727,9 @@ public class ternary extends CanvasWatchFaceService {
             yesTic = true;  handleUpdateTimeMessage();
         }
 
-        // none -> none changes size of text and text movements.
-        public void puffer(float puff){
+        // none -> none
+        // handle the mechanics of puffer
+        public void pufferer(float puff){
             tSize = textSize * puff; stSize = smallTextSize * puff; 
             yShift = yShiftDefault * puff; xShift = xShiftDefault * puff;
             setTextArraySize(smallTextRay, stSize, false); setTextArraySize(textRay, tSize, false);
@@ -724,7 +741,10 @@ public class ternary extends CanvasWatchFaceService {
             dateOffset = mXOffset + xShift/(float)3;
             puffFloatArray(vShiftRay, vShiftRayDef, puff); 
             puffFloatArray(smallVShiftRay, smallVShiftRayDef, puff);
-            
+        }
+        // none -> none changes size of text and text movements.
+        public void puffer(float puff){
+            pufferer(puff);
             invalidate(); 
         }
             
@@ -876,7 +896,20 @@ public class ternary extends CanvasWatchFaceService {
         private void hourTrits(boolean yesRefresh) {
             if (yesRefresh || time >= nextHour) {
                 c = 0; while(time >= hours[c]) { c++; }   
-                nextHour = hours[c]; hourInt = c - 12; timeSlate = hourInt;
+                nextHour = hours[c]; hourInt = c - 12; timeSlate = hourInt;  
+                if (stringRandHour)
+                {  k = 3 * random.nextInt(stringRayMod/3 - 1) ; 
+                   stringRayOffset = (stringRayOffset > k ? 0 : 3) + k;
+                   pufferer(puff);
+                } 
+                if (colorRandHour)
+                {  k = random.nextInt(ambientScheme.length - 1) ; 
+                   modTapCount = ((modTapCount > k ? 0 : 1) + k);
+                   setTextArrayColor(smallTextRay, modTapCount, false);
+                   setTextArrayColor(textRay, modTapCount, false);
+                   setTextArrayColor(commonTextRay, modTapCount, false);
+                   setTextArrayColor(greyTextRay, modTapCount, true);
+                }
                 k = 0;
                 // i is for item.
                 for (int i : trits3) {
@@ -900,9 +933,18 @@ public class ternary extends CanvasWatchFaceService {
             if (yesRefresh || time >= nextMinute){
                timeMod = time % 3600000; 
                c = 0; while(timeMod >= minutes[c]) { c++; }   
-               if (stringRandMinute)
-               {  stringRayOffset = (3 * c) % stringRayMod; // greebo test for characters
-                  puffer(puff);
+               if (stringRandMin)
+               {  k = 3 * random.nextInt(stringRayMod/3 - 1) ; 
+                  stringRayOffset = (stringRayOffset > k ? 0 : 3) + k;
+                  pufferer(puff);
+               } 
+               if (colorRandMin)
+               {  k = random.nextInt(ambientScheme.length - 1) ; 
+                  modTapCount = ((modTapCount > k ? 0 : 1) + k);
+                  setTextArrayColor(smallTextRay, modTapCount, false);
+                  setTextArrayColor(textRay, modTapCount, false);
+                  setTextArrayColor(commonTextRay, modTapCount, false);
+                  setTextArrayColor(greyTextRay, modTapCount, true);
                }
                minuteInt = c - (c < 31 ? 0 : 61); timeSlate = minuteInt;
                // after the mid minute the hour advances
@@ -952,11 +994,23 @@ public class ternary extends CanvasWatchFaceService {
 
         // none -> none
         private void secTrits () {
-            k = 7;
             timeMod = time % 60000;
             c = 0; while(timeMod >= seconds[c]) { c++; }   
-            timeSlate = c - (c < 31 ? 0 : 61);
-                
+            timeSlate = c - (c < 31 ? 0 : 61); 
+              if (stringRandSec)
+              {  k = 3 * random.nextInt(stringRayMod/3 - 1) ; 
+                 stringRayOffset = (stringRayOffset > k ? 0 : 3) + k;
+                 pufferer(puff);
+              } 
+              if (colorRandSec)
+              {  k = random.nextInt(ambientScheme.length - 1) ; 
+                 modTapCount = ((modTapCount > k ? 0 : 1) + k);
+                 setTextArrayColor(smallTextRay, modTapCount, false);
+                 setTextArrayColor(textRay, modTapCount, false);
+                 setTextArrayColor(commonTextRay, modTapCount, false);
+                 setTextArrayColor(greyTextRay, modTapCount, true);
+              }
+            k = 7; 
             for (int i : trits4) {
                 if (timeSlate > ((float) i / 2)) {
                     timeSlate -= i;
